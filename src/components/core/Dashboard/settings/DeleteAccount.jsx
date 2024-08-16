@@ -7,6 +7,7 @@ import { deleteProfile } from "../../../../services/operations/settingsAPI"
 
 export default function DeleteAccount() {
   const { token } = useSelector((state) => state.auth)
+  const {user} = useSelector((state)=>state.profile);
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -45,7 +46,7 @@ export default function DeleteAccount() {
             type="button"
             className="w-fit italic text-pink-300 flex items-center gap-x-1"
           >
-            <input type="checkbox" checked={isChecked} className="cursor-pointer" onChange={() => setIsChecked(!isChecked)} name="checkbox" id="checkbox" />
+            <input type="checkbox" checked={isChecked} className="cursor-pointer" onChange={() => setIsChecked(!isChecked)} name="checkbox" id="checkbox" disabled={user.accountType === "Admin"} />
             <p>I want to delete my account.</p>
           </button>
         </div>

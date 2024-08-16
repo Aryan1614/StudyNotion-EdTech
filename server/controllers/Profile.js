@@ -5,6 +5,13 @@ const CourseProgress = require("../models/CourseProgress");
 const mongoose = require('mongoose');
 const { uploadImageToCloudinary } = require('../utils/imageUploader');
 const { convertSecondsToDuration } = require('../utils/secToDuration');
+const PaymentHistory = require('../models/PaymentHistory');
+const Payments = require('../models/Payments');
+const { deleteCourse } = require('./Course');
+const Section = require('../models/Section');
+const SubSection = require('../models/SubSection');
+const Category = require('../models/Category');
+const RatingAndReviews = require('../models/RatingAndReviews');
 
 exports.updateProfile = async(req,res) => {
     try{
@@ -69,20 +76,85 @@ exports.deleteAccount = async (req, res) => {
         _id: new mongoose.Types.ObjectId(user.additionalDetails),
       });
 
-      for (const courseId of user.courses) {
-        await Course.findByIdAndUpdate(
-          {_id: courseId},
-          { $pull: { studentsEnrolled: id } },
-          { new: true }
-        );
+      if(user.accountType === "Student"){
+        for (const courseId of user.courses) {
+          await Course.findByIdAndUpdate(
+            {_id: courseId},
+            { $pull: { studentsEnrolled: id } },
+            { new: true }
+          );
+        }
+
+        await PaymentHistory.findOneAndDelete({userId: user._id});
+        await Payments.deleteMany({userId: user._id});
       }
+      if(user.accountType === "Instructor"){
+        const courses = user.courses;
+        for(const courseId of courses){
+          const course = await Course.findById(courseId);
+          if(!course) {
+            return res.status(404).json({
+              success: false,
+              message: "Course Not Found!",
+            });
+          }
+          // unroll Students From The Course TODO !!!
+          const studentsEnrolled = course.studentsEnrolled
+          for (const studentId of studentsEnrolled) {
+            await User.findByIdAndUpdate(studentId, {
+              $pull: { courses: courseId },
+            })
+          }
+
+          // delete Course From Category
+          await Category.findByIdAndUpdate(
+            {_id: course.category},
+            {
+              $pull:{
+                courses: course._id,
+              }
+            }
+          );
+
+          // delete Sections And SubSections
+          const sections = course.courseContent;
+
+          for(const sectionId of sections){
+            const section = await Section.findById(sectionId);
+
+            if(section){
+              const subSections = section.subSection;
+              for(const subSecionId of subSections){
+                await SubSection.findByIdAndDelete(subSecionId);
+              }
+            }
+            
+            await Section.findByIdAndDelete(sectionId);
+          }
+
+          await Course.findByIdAndDelete(courseId);
+
+          await User.findByIdAndUpdate(
+            {_id: user._id},
+            {
+              $pull:{
+                courses: courseId
+              }
+            }
+          );
+
+          await CourseProgress.deleteMany({courseID: course._id});
+        }
+      }
+
+      await RatingAndReviews.deleteMany({user: user._id});
 
       // Now Delete User
       await User.findByIdAndDelete(id);
       res.status(200).json({
         success: true,
         message: "User deleted successfully",
-      })
+      });
 
       await CourseProgress.deleteMany({ userId: id });
     } catch (error) {
@@ -247,6 +319,62 @@ exports.getEnrolledCourses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
+    })
+  }
+}
+
+exports.instructorDashboardData = async(req,res) => {
+  try{
+
+    const id = req.user.id;
+
+    if(!id){
+      return res.status(404).json({
+        success: false,
+        message: "Instructor id Not Found!",
+      });
+    }
+
+    const userDetails = await User.findById(id).populate({
+      path: "courses",
+      populate:{
+        path: "courseContent",
+        populate:{
+          path: "subSection"
+        }
+      }
+    }).exec();
+
+    if(!userDetails){
+      return res.status(404).json({
+        success: false,
+        message: "Instructor Not Found!"
+      });
+    }
+
+    let noOfCourses = userDetails.courses.length;
+    let noOfStudentsEnrolled = 0;
+    let totalIncome = 0;
+    let courses = userDetails.courses;
+
+    for(let course of courses){
+      totalIncome += (course.studentsEnrolled.length*course.price);
+      noOfStudentsEnrolled += course.studentsEnrolled.length;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Details Fetched Successfully!",
+      noOfCourses,
+      totalIncome,
+      noOfStudentsEnrolled,
+      courses,
+    })
+  } catch(e){
+    console.log(e);
+    return res.status(500).json({
+      success: false,
+      message: "Something Went Wrong While Fetching Dashboard Data"
     })
   }
 }

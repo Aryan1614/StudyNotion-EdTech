@@ -8,7 +8,8 @@ const {
     editCourse,
     fetchInstructorCourses,
     deleteCourse,
-    getFullDetailsOfCourse
+    getFullDetailsOfCourse,
+    getAllDetailsOfCourse,
 } = require("../controllers/Course");
 
 const {
@@ -35,6 +36,10 @@ const {
     getAllCatagoryDetails
 } = require("../controllers/Category");
 
+const {
+    markLectureAsComplete
+} = require("../controllers/CourseProgress");
+
 const { auth, isStudent, isInstructor, isAdmin } = require("../middlewares/auth");
 
 
@@ -48,6 +53,9 @@ router.post("/getFullDetailsOfCourse",auth, isInstructor, getFullDetailsOfCourse
 router.post("/getAllCourseDetails", getAllCourseDetails);
 router.get("/getAllInstructorCourses", auth, isInstructor, fetchInstructorCourses);
 router.delete("/deleteCourse",auth, isInstructor, deleteCourse);
+router.post("/getDetailsOfCourse",auth,isStudent,getAllDetailsOfCourse);
+
+router.post("/markLectureAsComplete",auth,isStudent,markLectureAsComplete);
 
 // ********************************************************************************************************
 //                                      Section Routes

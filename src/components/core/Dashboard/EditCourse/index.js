@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom';
 import RenderSteps from '../AddCourse/RenderSteps';
 import { setCourse, setEditCourse } from '../../../../slices/courseSlice';
-import { getFullDetailsOfCourse } from '../../../../services/operations/courseDetailsAPI';
+import { getFullDetailsOfCourseInstructor } from '../../../../services/operations/courseDetailsAPI';
 
 function EditCourse() {
 
@@ -17,7 +17,7 @@ function EditCourse() {
     useEffect(() => {
         const getCourseDetails = async() => {
             setLoading(true);
-            const response = await getFullDetailsOfCourse(courseId,token);
+            const response = await getFullDetailsOfCourseInstructor(courseId,token);
             if(response){
                 dispatch(setEditCourse(true));
                 dispatch(setCourse(response));

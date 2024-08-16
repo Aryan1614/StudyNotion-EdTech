@@ -10,6 +10,7 @@ import LearningLanguageSection from '../components/core/HomePage/LearningLanguag
 import ExploreMore from '../components/core/HomePage/ExploreMore';
 import Footer from '../components/common/Footer';
 import InstructorSection from '../components/core/HomePage/InstructorSection';
+import ReviewSlider from '../components/common/ReviewSlider';
 // import { useNavigate } from 'react-router-dom';
 
 function Home() {
@@ -188,6 +189,10 @@ function Home() {
         </h1>
         {/* <ReviewSlider /> */}
       </div>
+        
+        <div className='mx-auto w-11/12 max-w-maxContent'>
+          <ReviewSlider />
+        </div>
 
         {/* Footer */}
         <Footer/>

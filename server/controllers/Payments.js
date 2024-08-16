@@ -6,6 +6,9 @@ const { courseEnrollmentEmail } = require("../mail/templates/courseEnrollmentEma
 const { paymentSuccessEmail } = require("../mail/templates/paymentSuccessEmail");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
+const CourseProgress = require('../models/CourseProgress');
+const Payments = require('../models/Payments');
+const PaymentHistory = require('../models/PaymentHistory');
 
 exports.capturePayment = async(req,res) => {
     try{
@@ -109,7 +112,9 @@ exports.verifyPayment = async(req,res) => {
         const expectedSignature = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET).update(body.toString()).digest("hex");
 
         if(expectedSignature === razorpay_signature){
-            await enrollStudents(courses, userId, res)
+            await enrollStudents(courses, userId, res);
+
+            
 
             return res.status(200).json({
                 success: true,
@@ -143,8 +148,6 @@ const enrollStudents = async(courses, userId, res) => {
             })
         }
 
-        // const id = new mongoose.Types.ObjectId(userId);
-
         for(const course_id of courses){
             const enrolledCourseByStduent = await Course.findOneAndUpdate(
                 {_id: course_id},
@@ -164,12 +167,18 @@ const enrollStudents = async(courses, userId, res) => {
             }
 
             // const cid = new mongoose.Types.ObjectId(course_id);
+            const courseProgress = await CourseProgress.create({
+                courseID: course_id,
+                userId: userId,
+                completedVideos: [],
+            });
 
             const userCourseEnrolled = await User.findOneAndUpdate(
                 {_id: userId},
                 {
                     $push:{
                         courses: course_id,
+                        courseProgress: courseProgress._id
                     }
                 },
                 {new:true}
@@ -204,10 +213,10 @@ const enrollStudents = async(courses, userId, res) => {
 exports.sendVerificationEmail = async(req,res) => {
     try{
 
-        const {order_id,payment_id,amount} = req.body;
+        const {order_id,payment_id,amount,courses} = req.body;
         const userId = req.user.id;
 
-        console.log("Backend Send Verification Mail->",userId,order_id,payment_id,amount);
+        // console.log("Backend Send Verification Mail->",userId,order_id,payment_id,amount);
 
         if(!order_id || !payment_id || !amount){
             return res.status(404).json({
@@ -224,6 +233,27 @@ exports.sendVerificationEmail = async(req,res) => {
                 message: "Student Not Found!",
             })
         }
+
+        const newPayment = await Payments.create({
+            userId: user._id,
+            courses: courses,
+            amount: amount,
+            paymentId: payment_id,
+            orderId: order_id,
+        });
+
+
+        const paymentHistory = await PaymentHistory.findOneAndUpdate(
+            {userId: user._id},
+            {
+                $push:{
+                    paymentHistory: newPayment._id
+                }
+            },
+            {new: true}
+        );
+
+        // console.log(paymentHistory);
 
         await mailSender(
             user.email,

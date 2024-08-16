@@ -8,7 +8,8 @@ import { resetCart } from "../../slices/cartSlice";
 const {
     COURSE_PAYMENT_API,
     COURSE_VERIFY_API,
-    SEND_PAYMENT_SUCCESS_EMAIL_API,    
+    SEND_PAYMENT_VERIFICATION_MAIL,    
+    FETCH_PAYMENT_HISTORY_DETAILS
 } = studentsEndpoints;
 
 function loadScript(src) {
@@ -59,9 +60,9 @@ export const buyCourse = async(token,courses,navigate,dispatch,userDetails) => {
                 email: userDetails.email,
             },
             handler: function(response){
-                sendPaymentSuccessMail(response,orderResponse.data.data.amount,token);
                 //verfiy payemnt
                 verifyPayment({...response,courses},token,navigate,dispatch);
+                sendPaymentSuccessMail(response,orderResponse.data.data.amount,token,courses);
             }
         }
 
@@ -80,19 +81,16 @@ export const buyCourse = async(token,courses,navigate,dispatch,userDetails) => {
 }
 
 
-export const sendPaymentSuccessMail = async(response,amount,token) => {
+export const sendPaymentSuccessMail = async(response,amount,token,courses) => {
     try{
-        await apiconnector("POST",SEND_PAYMENT_SUCCESS_EMAIL_API,{
+        await apiconnector("POST",SEND_PAYMENT_VERIFICATION_MAIL,{
             order_id: response.razorpay_order_id,
             payment_id: response.razorpay_payment_id,
+            courses: courses,
             amount,
         },{
             Authorization: `Bearer ${token}`
         });
-
-        if(!response.data.success){
-            throw new Error(response.data.message);
-        }
         
     } catch(e){
         console.log(e);
@@ -125,3 +123,23 @@ export const verifyPayment = async(bodyData,token,navigate,dispatch) => {
     toast.dismiss(toastId);
 }
 
+export const fetchPaymentHistoryDetails = async(setLoading,token) => {
+    let result = {};
+    setLoading(true);
+    try{
+        const response = await apiconnector("GET",FETCH_PAYMENT_HISTORY_DETAILS,null,{
+            Authorization: `Bearer ${token}`
+        });
+
+        if(!response.data.success){
+            throw new Error(response.data.message);
+        }
+
+        result = response?.data?.data;
+    } catch(error){
+        console.log(error);
+        toast.error(error.response.data.message);
+    }
+    setLoading(false);
+    return result;
+}

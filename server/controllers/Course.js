@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { uploadImageToCloudinary } = require('../utils/imageUploader');
 const Section = require('../models/Section');
 const SubSection = require('../models/SubSection');
+const CourseProgress = require('../models/CourseProgress');
 
 // fetch all courses
 exports.getAllCourses = async(req,res) => {
@@ -50,7 +51,7 @@ exports.getAllCourseDetails = async(req,res) => {
             {
                 path: "instructor",
                 populate:{
-                    path: "additionalDetails",
+                  path: "additionalDetails",
                 }
             }
         )
@@ -341,7 +342,7 @@ exports.deleteCourse = async(req,res) => {
   try{
 
     const { courseId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.id || req.body;
 
     if(!courseId || !userId){
       return res.status(403).json({
@@ -404,6 +405,8 @@ exports.deleteCourse = async(req,res) => {
       }
     );
 
+    await CourseProgress.deleteMany({courseID: course._id});
+
     return res.status(200).json({
       success: true,
       message: "Course Successfully Deleted!", 
@@ -457,5 +460,54 @@ exports.getFullDetailsOfCourse = async(req,res) => {
       success: false,
       message: "Something Went Wrong While Fetching Details Of Course!"
     })
+  }
+}
+
+exports.getAllDetailsOfCourse = async(req,res) => {
+  try{
+
+    const {courseId} = req.body;
+    const userId = req.user.id;
+
+    if(!courseId || !userId) {
+      return res.status(404).json({
+        success: false,
+        message: "CourseId, UserId Not Found!!",
+      });
+    }
+
+    const courseDetails = await Course.findById(courseId).populate({
+      path:"courseContent",
+      populate:{
+        path: "subSection"
+      }
+    }).exec();
+
+    if(!courseDetails){
+      return res.status(404).json({
+        success: false,
+        message: "Course Not Found!"
+      });
+    }
+
+    const completedVideos = await CourseProgress.findOne({
+      courseID: courseId,
+      userId: userId,
+    });
+
+    console.log("CourseProgress->",completedVideos);
+
+    return res.status(200).json({
+      success: true,
+      courseDetails,
+      completedVideos: completedVideos.completedVideos,
+    });
+
+  } catch(e){
+    console.log(e);
+    return res.status(500).json({
+      success: false,
+      message: "Something Went Wrong While Fetching Course Details For Student",
+    });
   }
 }

@@ -1,4 +1,5 @@
 import React from "react"
+import ReviewSlider from "../components/common/ReviewSlider"
 import LearningGrid from "../components/core/AboutPage/LearningGrid"
 import FoundingStory from "../assets/Images/FoundingStory.png"
 import BannerImage1 from "../assets/Images/aboutus1.webp"
@@ -112,7 +113,9 @@ const About = () => {
         <h1 className="text-center text-4xl font-semibold mt-8">
           Reviews from other learners
         </h1>
-        {/* <ReviewSlider /> */}
+        <div className='mx-auto w-11/12 max-w-maxContent'>
+          <ReviewSlider />
+        </div>
       </div>
       <Footer />
     </div>

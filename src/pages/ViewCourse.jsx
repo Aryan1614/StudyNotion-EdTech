@@ -8,7 +8,7 @@ import CourseReviewModal from '../components/core/ViewCourse/CourseReviewModal';
 
 function ViewCourse() {
 
-    const[reviewModal,setReviewModal] = useState(null);
+    const[reviewModal,setReviewModal] = useState(false);
     const {courseId} = useParams();
     const {token} = useSelector((state)=>state.auth);
     const dispatch = useDispatch();
@@ -17,25 +17,29 @@ function ViewCourse() {
     useEffect(() => {
       const setCourseSpecificDetails = async() => {
         const courseData = await fetchFullCourseDetails(courseId,token);
-        console.log(courseData);
-        dispatch(setCourseSectionData(courseData?.courseContent));
-        dispatch(setEntireCourseData(courseData));
-        dispatch(setCompletedLectures());
+        dispatch(setCourseSectionData(courseData?.courseDetails?.courseContent));
+        dispatch(setEntireCourseData(courseData?.courseDetails));
+        dispatch(setCompletedLectures(courseData?.completedVideos));
         let lectures = 0;
-        dispatch(setTotalNoOfLectures());
+        for(let section of courseData?.courseDetails?.courseContent){
+          lectures += section?.subSection?.length;
+        }
+        dispatch(setTotalNoOfLectures(lectures));
       }
       setCourseSpecificDetails();
     },[])
 
   return (
     <>
-        <div>
+        <div className='relative flex min-h-[calc(100vh-3.5rem)]'>
             <VideoDetailsSlider setReviewModal={setReviewModal} />
-            <div>
+            <div className='h-[calc(100vh-3.5rem)] flex-1 overflow-auto'>
+              <div className='h-[calc(100vh-3.5rem)] flex-1 overflow-auto'>
                 <Outlet/>
+              </div>
             </div>
         </div>
-        {reviewModal && <CourseReviewModal modalData={reviewModal} />}
+        {reviewModal && <CourseReviewModal setReviewModal={setReviewModal} />}
     </>
   )
 }

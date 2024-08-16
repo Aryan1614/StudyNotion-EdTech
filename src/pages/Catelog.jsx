@@ -46,7 +46,7 @@ function Catelog() {
   return (
     <div className='text-white'>
     {
-        loading ? (
+        loading || !catelogPageData ? (
             <div className='w-screen h-screen flex items-center justify-center'>
                 <div className='spinner'></div>
             </div>
@@ -57,8 +57,8 @@ function Catelog() {
             <div className='w-screen h-screen flex items-center justify-center text-4xl'>
                 No Courses Found For This Catagory...
             </div>
-        ) 
-        : (
+        )
+        : catelogPageData && (
             <div className='bg-richblack-900 mb-14'>
                 <div className='bg-richblack-800 h-[260px] flex items-center w-screen'>
                     <div className='flex flex-col items-start max-w-maxContent w-11/12 mx-auto gap-3 text-richblack-300'>

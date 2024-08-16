@@ -15,7 +15,10 @@ exports.createRating = async(req,res) => {
             });
         }
 
-        const courseDetails = await Course.findOne({_id:courseId,studentsEnrolled: {$eleMatch: {$eq: id}}});
+        const courseDetails = await Course.findOne({
+            _id:courseId,
+            studentsEnrolled: { $eq: id }
+        });
 
         if(!courseDetails){
             return res.status(404).json({
@@ -24,7 +27,7 @@ exports.createRating = async(req,res) => {
             });
         }
 
-        const checkAlreadyReviewed = await RatingAndReview.findOne({_id:id, course:courseId});
+        const checkAlreadyReviewed = await RatingAndReview.findOne({user:id, course:courseId});
 
         if(checkAlreadyReviewed){
             return res.status(404).json({

@@ -1,16 +1,16 @@
 import React from 'react'
+import { useSelector } from 'react-redux';
+import CreateCategory from './AdminDashboard/CreateCategory';
 
 function AdminPage() {
+  const {user} = useSelector((state)=>state.profile);
+    
   return (
-    <div className='text-white flex items-center justify-center h-full flex-col'>
-      <p>Admin Page Only For Admin. Work In Progress!</p>
-      <div className='flex flex-col gap-y-2 mt-10'>
-        <p>Features To Be Added In this section.</p>
-        <div className='flex flex-col mt-2 gap-y-3'>
-            <p>1. Create Category</p>
-            <p>2. New Admin Signup</p>
-            <p>3. Data Visualization {`->`} Not Decided yet</p>
-        </div>
+    <div className='text-white flex h-full flex-col'>
+      <p className='text-richblack-25 text-3xl font-semibold'>Hi {user.firstName} 👋</p>
+      <p className='text-richblack-5 mt-2'>Welcome To The Admin Page</p>
+      <div className='mt-4'>
+        <CreateCategory />
       </div>
     </div>
   )

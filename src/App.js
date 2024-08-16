@@ -24,7 +24,7 @@ import MyCourses from './components/core/Dashboard/MyCourses';
 import EditCourse from './components/core/Dashboard/EditCourse';
 import Catelog from './pages/Catelog';
 import CourseDetails from './pages/CourseDetails';
-import Instructor from './components/core/Dashboard/Instructor';
+import Instructor from './components/core/Dashboard/InstructorDashboard/Instructor';
 import AdminPage from './components/core/Dashboard/AdminPage';
 import PurchaseHistory from './components/core/Dashboard/PurchaseHistory';
 import ViewCourse from './pages/ViewCourse';

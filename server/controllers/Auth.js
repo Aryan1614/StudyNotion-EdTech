@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const {passwordUpdated} = require("../mail/templates/passwordUpdate");
 const mailSender = require('../utils/mailSender');
+const PaymentHistory = require('../models/PaymentHistory');
 
 // sendotp
 exports.sendOtp = async(req,res) => {
@@ -145,6 +146,19 @@ exports.signUp = async(req,res) => {
         });
 
         // console.log(newUser);
+        if(accountType === "Student"){
+            const newPaymentHistory = await PaymentHistory.create({
+                userId: newUser._id,
+                paymentHistory: []
+            });
+    
+            if(!newPaymentHistory){
+                return res.status(404).json({
+                    success: false,
+                    message: "Payment History Not Cretaed For User",
+                })
+            }
+        }
 
         return res.status(200).json({
             success: true,

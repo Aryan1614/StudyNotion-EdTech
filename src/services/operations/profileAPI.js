@@ -4,6 +4,7 @@ import { apiconnector } from "../apiconnector";
 
 const {
     GET_ENROLLED_COURSE_API,
+    GET_INSTRUCTOR_DASHBOARD_DETAILS
 } = profileEndpoints;
 
 export const getEnrolledCourses = async(token) => {
@@ -25,5 +26,26 @@ export const getEnrolledCourses = async(token) => {
         console.log(e);
         toast.error(e);
     }
+    return result;
+}
+
+export const fetchInstructorDashboardData = async(token,setLoading) => {
+    let result = [];
+    setLoading(true);
+    try{
+        const response = await apiconnector("GET",GET_INSTRUCTOR_DASHBOARD_DETAILS,null,{
+            Authorization: `Bearer ${token}`
+        });
+        console.log(response);
+        if(!response.data.success){
+            throw new Error(response.data.message);
+        }
+
+        result = response.data;
+    } catch(e){
+        console.log(e);
+        toast.error(e.response.data.message);
+    }
+    setLoading(false);
     return result;
 }

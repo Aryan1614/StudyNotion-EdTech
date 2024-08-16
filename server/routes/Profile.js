@@ -7,10 +7,11 @@ const {
     getAllUserDetails,
     updateProfilePicture,
     removeProfilePicture,
-    getEnrolledCourses
+    getEnrolledCourses,
+    instructorDashboardData
 } = require("../controllers/Profile");
 
-const { auth, isStudent } = require("../middlewares/auth");
+const { auth, isStudent, isInstructor } = require("../middlewares/auth");
 
 
 router.post("/updateProfile", auth ,updateProfile);
@@ -19,5 +20,6 @@ router.get("/getAllUserDetails", auth , getAllUserDetails);
 router.put("/updateProfilePicture", auth ,updateProfilePicture)
 router.put("/removeProfilePicture",auth,removeProfilePicture);
 router.get("/getEnrolledCourses",auth, isStudent, getEnrolledCourses);
+router.get("/instructorDashboardData",auth,isInstructor,instructorDashboardData);
 
 module.exports = router;

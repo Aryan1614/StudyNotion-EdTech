@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { fetchFullCourseDetails } from '../services/operations/courseDetailsAPI';
 import GetAvgRating from '../utils/getAvgRating';
 import { useDispatch, useSelector } from 'react-redux';
 import Error from './Error';
@@ -17,6 +16,7 @@ import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
 import CourseAccordionBar from '../components/core/Course/CourseAccordionBar';
 import { buyCourse } from '../services/operations/studentsFeatursAPI';
+import { getAllCourseDetailsAllUsers } from '../services/operations/courseDetailsAPI';
  
 function CourseDetails() {
 
@@ -45,7 +45,8 @@ function CourseDetails() {
 
     useEffect(() => {
         const fetchCourseDetails = async() => {
-          const response = await fetchFullCourseDetails(courseId);
+          const response = await getAllCourseDetailsAllUsers(courseId);
+          console.log(response);
           if(response){
             setCourse(response);
             console.log(course);
@@ -138,7 +139,6 @@ function CourseDetails() {
     }
 
     // destructure allvalues 
-
     const {
       courseName,
       courseDescription,
